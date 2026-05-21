@@ -1,0 +1,16 @@
+target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+!.mvn/wrapper/
+.settings/
+.classpath
+.project
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+application-local.properties
