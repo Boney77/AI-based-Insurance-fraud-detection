@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { submitClaim } from '../api/api'
+import { submitClaim, getApiErrorMessage } from '../api/api'
 
 const INCIDENT_TYPES = [
   'Accident',
@@ -51,7 +51,7 @@ export default function ClaimForm() {
       const { data } = await submitClaim(payload)
       navigate(`/result/${data.claimId}`, { state: { result: data } })
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to submit claim. Please try again.')
+      setError(getApiErrorMessage(err))
     } finally {
       setLoading(false)
     }

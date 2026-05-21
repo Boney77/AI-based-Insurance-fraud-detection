@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { adminLogin } from '../api/api'
+import { adminLogin, getApiErrorMessage } from '../api/api'
 
 export default function AdminLogin() {
   const navigate = useNavigate()
@@ -24,7 +24,7 @@ export default function AdminLogin() {
       localStorage.setItem('adminToken', data.token)
       navigate('/admin/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Try admin / 1234.')
+      setError(getApiErrorMessage(err))
     } finally {
       setLoading(false)
     }
