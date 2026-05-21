@@ -1,13 +1,13 @@
 import axios from 'axios'
 
-// Strip trailing slash so we never get double-slash URLs
-const rawUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
-const BASE_URL = rawUrl.replace(/\/+$/, '')
+// Production: /api → Vercel proxy → Railway backend
+// Local dev:  /api → Vite proxy  → localhost:8080
+const BASE_URL = '/api'
 
 const api = axios.create({
   baseURL: BASE_URL,
   headers: { 'Content-Type': 'application/json' },
-  timeout: 15000,
+  timeout: 20000,
 })
 
 api.interceptors.request.use((config) => {
@@ -18,19 +18,21 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-/** Turn axios errors into human-readable messages */
 export function getApiErrorMessage(err) {
   if (!err.response) {
-    // No response = network error or CORS block
-    if (import.meta.env.VITE_API_URL) {
-      return `Cannot reach backend at ${BASE_URL}. Check that Railway is running and VITE_API_URL is correct.`
-    }
-    return 'Cannot reach backend. Set VITE_API_URL in Vercel to your Railway URL and redeploy.'
+    return 'Cannot reach backend. Check Railway is running and RAILWAY_BACKEND_URL is set on Vercel.'
   }
-  const data = err.response.data
+  let data = err.response.data
+  if (typeof data === 'string') {
+    try { data = JSON.parse(data) } catch (_) { /* keep string */ }
+  }
   if (data?.message) return data.message
   if (data?.error)   return data.error
-  if (err.response.status === 404) return 'API endpoint not found. Check VITE_API_URL has no trailing slash.'
+  if (err.response.status === 405) {
+    return 'Backend misconfigured (405). Set RAILWAY_BACKEND_URL on Vercel and redeploy.'
+  }
+  if (err.response.status === 404) return 'API endpoint not found. Check Railway backend is deployed.'
+  if (err.response.status === 502) return data?.message || 'Railway backend is unreachable.'
   if (err.response.status >= 500)  return 'Backend server error. Check Railway logs.'
   return `Request failed (${err.response.status}). Please try again.`
 }
