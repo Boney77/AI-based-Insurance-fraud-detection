@@ -4,12 +4,14 @@ import com.fraudsystem.dto.ClaimRequest;
 import com.fraudsystem.dto.ClaimResponse;
 import com.fraudsystem.service.ClaimService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/claim")
+@CrossOrigin(origins = "*", maxAge = 3600)
 public class ClaimController {
 
     private final ClaimService claimService;
