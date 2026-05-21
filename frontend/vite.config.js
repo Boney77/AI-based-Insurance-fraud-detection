@@ -5,10 +5,5 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    proxy: {
-      '/claim': { target: 'http://localhost:8080', changeOrigin: true },
-      '/admin': { target: 'http://localhost:8080', changeOrigin: true },
-      '/health': { target: 'http://localhost:8080', changeOrigin: true },
-    },
   },
 })

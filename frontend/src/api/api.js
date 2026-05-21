@@ -1,11 +1,10 @@
 import axios from 'axios'
 
-// Same-origin in production (Vercel middleware proxies to Railway)
-// Vite dev proxy forwards /claim, /admin, /health → localhost:8080
-const BASE_URL = ''
+// Vite only exposes env vars prefixed with VITE_
+const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080').replace(/\/+$/, '')
 
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 20000,
 })
@@ -18,7 +17,7 @@ api.interceptors.request.use((config) => {
 
 export function getApiErrorMessage(err) {
   if (!err.response) {
-    return 'Cannot reach backend. Check Railway is running and RAILWAY_BACKEND_URL is set on Vercel.'
+    return `Cannot reach backend at ${API_URL}. Check Railway is running and VITE_API_URL is set on Vercel.`
   }
   let data = err.response.data
   if (typeof data === 'string') {
@@ -27,10 +26,9 @@ export function getApiErrorMessage(err) {
   if (data?.message) return data.message
   if (data?.error)   return data.error
   if (err.response.status === 405) {
-    return 'Server rejected POST (405). Redeploy Vercel after setting RAILWAY_BACKEND_URL.'
+    return 'Server rejected POST (405). VITE_API_URL may be pointing to Vercel instead of Railway.'
   }
-  if (err.response.status === 502) return data?.message || 'Railway backend is unreachable.'
-  if (err.response.status >= 500)  return 'Backend error. Check Railway logs.'
+  if (err.response.status >= 500) return 'Backend server error. Check Railway logs.'
   return `Request failed (${err.response.status}). Please try again.`
 }
 
