@@ -1,14 +1,15 @@
 /**
- * Vercel serverless proxy — forwards /api/* to Railway backend.
- * Set RAILWAY_BACKEND_URL in Vercel Environment Variables.
- * Example: https://your-app.up.railway.app  (no trailing slash)
+ * Vercel serverless proxy: /api/* → Railway backend
+ * Uses .cjs extension so it works with "type": "module" in package.json
+ *
+ * Set on Vercel: RAILWAY_BACKEND_URL=https://your-app.up.railway.app
  */
 module.exports = async function handler(req, res) {
   const backend = process.env.RAILWAY_BACKEND_URL || process.env.VITE_API_URL
 
   if (!backend) {
     return res.status(500).json({
-      message: 'Backend not configured. Set RAILWAY_BACKEND_URL in Vercel Environment Variables.',
+      message: 'Set RAILWAY_BACKEND_URL in Vercel Environment Variables to your Railway URL.',
     })
   }
 
@@ -25,7 +26,8 @@ module.exports = async function handler(req, res) {
     const options = { method: req.method, headers }
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      options.body = JSON.stringify(req.body || {})
+      const body = req.body
+      options.body = typeof body === 'string' ? body : JSON.stringify(body || {})
     }
 
     const response = await fetch(target, options)
@@ -36,7 +38,7 @@ module.exports = async function handler(req, res) {
     return res.send(text)
   } catch (err) {
     return res.status(502).json({
-      message: `Cannot reach Railway backend at ${backend}. Check Railway is running.`,
+      message: 'Cannot reach Railway backend. Check RAILWAY_BACKEND_URL and that Railway is running.',
       detail: err.message,
     })
   }
